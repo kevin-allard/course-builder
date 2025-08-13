@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Algebra I Course Tree Builder - Prototype V3</title>
+    <title>Algebra I Course Tree Builder - Prototype V4</title>
     
     <!-- Bootstrap for quick, clean styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -103,7 +103,7 @@
         }
         .tree-node-content-inner {
             display: flex;
-            align-items: center;
+            align-items: flex-start; /* Align icon to the top */
         }
         
         .tree-toggle {
@@ -112,6 +112,7 @@
             color: #6c757d;
             font-size: 1.2em;
             transition: transform 0.2s;
+            line-height: 1.5; /* Align toggle with text */
         }
         .tree-toggle.collapsed {
             transform: rotate(-90deg);
@@ -125,6 +126,7 @@
         .node-icon {
             margin-right: 5px;
             color: #6c757d;
+            margin-top: 2px; /* Align icon better */
         }
         .node-title-wrapper {
             display: flex;
@@ -133,10 +135,17 @@
         .node-title {
             font-weight: 500;
         }
+        .node-description {
+            font-size: 0.8rem;
+            color: #6c757d;
+            white-space: normal;
+            margin-top: 4px;
+        }
         .node-asset-id {
             font-size: 0.7rem;
             color: #adb5bd;
             font-family: monospace;
+            margin-top: 4px;
         }
         
         /* Filter controls */
@@ -148,7 +157,7 @@
 <body>
     <div class="container-fluid p-3">
         <div class="header">
-            <h1 class="h3">Course Tree Builder Prototype V3</h1>
+            <h1 class="h3">Course Tree Builder Prototype V4</h1>
             <p class="mb-0">A visual concept for building course trees from a central asset collection.</p>
         </div>
 
@@ -170,6 +179,9 @@
                             <div class="col-6">
                                 <select id="audience-filter" class="form-select">
                                     <option value="">All Audiences</option>
+                                    <option value="STU_ONLY">Student</option>
+                                    <option value="TCH_ONLY">Teacher</option>
+                                    <option value="STU_TCH">Student and Teacher</option>
                                 </select>
                             </div>
                         </div>
@@ -296,15 +308,9 @@
 
             function renderTree(nodes, container) {
                 nodes.forEach(node => {
-                    // *** MODIFICATION START: Check for asset existence before rendering ***
-                    if (node['Tier Type Title'] === 'Learning Object') {
-                        const asset = findAssetById(node['Tier Code']);
-                        // If asset is not found in the collection, skip rendering this node.
-                        if (!asset) {
-                            return; 
-                        }
+                    if (node['Tier Type Title'] === 'Learning Object' && !findAssetById(node['Tier Code'])) {
+                        return; // Suppress display if asset is not in the collection
                     }
-                    // *** MODIFICATION END ***
 
                     const nodeElement = document.createElement('div');
                     nodeElement.classList.add('tree-node');
@@ -313,9 +319,7 @@
 
                     const contentWrapper = document.createElement('div');
                     contentWrapper.classList.add('tree-node-content');
-                    contentWrapper.setAttribute('data-bs-toggle', 'tooltip');
-                    contentWrapper.setAttribute('data-bs-placement', 'right');
-
+                    
                     const contentInner = document.createElement('div');
                     contentInner.classList.add('tree-node-content-inner');
                     
@@ -331,16 +335,21 @@
                     
                     if (node['Tier Type Title'] === 'Learning Object') {
                         const asset = findAssetById(node['Tier Code']);
-                        // We know the asset exists from the check above
                         titleSpan.textContent = asset.curriculumTreeDisplayName;
-                        contentWrapper.title = asset.description || 'No description available.';
                         
+                        const descriptionP = document.createElement('p');
+                        descriptionP.classList.add('node-description');
+                        descriptionP.textContent = asset.description || '';
+                        titleWrapper.appendChild(descriptionP);
+
                         const assetIdSpan = document.createElement('small');
                         assetIdSpan.classList.add('node-asset-id');
                         assetIdSpan.textContent = `ID: ${asset.assetId}`;
                         titleWrapper.appendChild(assetIdSpan);
                     } else {
                         titleSpan.textContent = node['Tier Title'];
+                        contentWrapper.setAttribute('data-bs-toggle', 'tooltip');
+                        contentWrapper.setAttribute('data-bs-placement', 'right');
                         contentWrapper.title = node.Description || 'No description available.';
                     }
 
@@ -350,28 +359,25 @@
                     contentWrapper.appendChild(contentInner);
                     
                     if (node.children.length > 0) {
-                        const toggle = document.createElement('span');
-                        toggle.classList.add('material-icons', 'tree-toggle');
-                        toggle.textContent = 'arrow_drop_down';
-                        contentInner.insertBefore(toggle, icon);
-                    }
-
-                    nodeElement.appendChild(contentWrapper);
-
-                    if (node.children.length > 0) {
                         const childrenContainer = document.createElement('div');
                         childrenContainer.classList.add('tree-children');
                         renderTree(node.children, childrenContainer);
-                        // Only append children container if it has rendered children
-                        if(childrenContainer.hasChildNodes()){
-                           nodeElement.appendChild(childrenContainer);
+                        
+                        // Only add toggle and children container if there are visible children
+                        if (childrenContainer.hasChildNodes()) {
+                            const toggle = document.createElement('span');
+                            toggle.classList.add('material-icons', 'tree-toggle');
+                            toggle.textContent = 'arrow_drop_down';
+                            contentInner.insertBefore(toggle, icon);
+                            nodeElement.appendChild(childrenContainer);
                         }
                     }
+                    
+                    nodeElement.prepend(contentWrapper);
                     
                     if (['Lesson', 'Topic', 'Sub_Section'].includes(node['Tier Type Title'])) {
                         contentWrapper.classList.add('drop-target');
                     }
-
                     container.appendChild(nodeElement);
                 });
             }
@@ -405,14 +411,6 @@
 
             function populateFilters() {
                 const types = [...new Set(allAssets.map(a => a.assetActivityTypeId))].sort();
-                const audienceSet = new Set();
-                allAssets.forEach(asset => {
-                    try {
-                        const cleanAudienceString = asset.audiences.replace(/^"|"$/g, '').replace(/""/g, '"');
-                        const audiences = JSON.parse(cleanAudienceString);
-                        audiences.forEach(aud => audienceSet.add(aud));
-                    } catch (e) { /* Ignore parsing errors */ }
-                });
                 
                 const typeFilter = document.getElementById('type-filter');
                 types.forEach(type => {
@@ -422,15 +420,6 @@
                         option.textContent = type;
                         typeFilter.appendChild(option);
                     }
-                });
-
-                const audienceFilter = document.getElementById('audience-filter');
-                const audienceMap = { 'STU': 'Student', 'TCH': 'Teacher' };
-                [...audienceSet].sort().forEach(aud => {
-                    const option = document.createElement('option');
-                    option.value = aud;
-                    option.textContent = audienceMap[aud] || aud;
-                    audienceFilter.appendChild(option);
                 });
             }
 
@@ -450,7 +439,14 @@
                         try {
                             const cleanAudienceString = asset.audiences.replace(/^"|"$/g, '').replace(/""/g, '"');
                             const audiences = JSON.parse(cleanAudienceString);
-                            audienceMatch = audiences.includes(selectedAudience);
+                            
+                            if (selectedAudience === 'STU_ONLY') {
+                                audienceMatch = audiences.length === 1 && audiences.includes('STU');
+                            } else if (selectedAudience === 'TCH_ONLY') {
+                                audienceMatch = audiences.length === 1 && audiences.includes('TCH');
+                            } else if (selectedAudience === 'STU_TCH') {
+                                audienceMatch = audiences.length === 2 && audiences.includes('STU') && audiences.includes('TCH');
+                            }
                         } catch (e) {
                             audienceMatch = false;
                         }
@@ -493,7 +489,6 @@
                             
                             const newAssetNode = createAssetNode(asset);
                             evt.item.replaceWith(newAssetNode);
-                            new bootstrap.Tooltip(newAssetNode.querySelector('[data-bs-toggle="tooltip"]'));
                         }
                     });
                 });
@@ -506,11 +501,12 @@
                 nodeElement.dataset.tierType = 'Learning Object';
                 
                 nodeElement.innerHTML = `
-                    <div class="tree-node-content" data-bs-toggle="tooltip" data-bs-placement="right" title="${asset.description || 'No description available.'}">
+                    <div class="tree-node-content">
                         <div class="tree-node-content-inner">
                             <span class="material-icons node-icon">article</span>
                             <div class="node-title-wrapper">
                                 <span class="node-title">${asset.curriculumTreeDisplayName}</span>
+                                <p class="node-description">${asset.description || ''}</p>
                                 <small class="node-asset-id">ID: ${asset.assetId}</small>
                             </div>
                         </div>
@@ -542,7 +538,6 @@
                             
                             const newAssetNode = createAssetNode(assetToPlace);
                             childrenContainer.appendChild(newAssetNode);
-                            new bootstrap.Tooltip(newAssetNode.querySelector('[data-bs-toggle="tooltip"]'));
                             assetsAdded++;
                         }
                     });
