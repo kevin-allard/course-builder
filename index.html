@@ -4,118 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Algebra I Course Tree Builder - Prototype V5</title>
-    
-    <!-- Bootstrap for quick, clean styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Google Icons for UI elements -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
     <style>
-        :root {
-            --primary-color: #059B97;
-            --secondary-color: #f0f8ff;
-            --border-color: #dee2e6;
-            --hover-bg: #e9ecef;
-            --asset-bg: #ffffff;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #eef2f5;
-        }
-        .header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem 1.5rem;
-            margin-bottom: 1rem;
-            border-radius: 0.25rem;
-        }
-        .pane {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 1.5rem;
-            height: 85vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .pane-header {
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-        }
-        #asset-list, #course-tree {
-            overflow-y: auto;
-            flex-grow: 1;
-        }
-        .asset-card {
-            background-color: var(--asset-bg);
-            border: 1px solid var(--border-color);
-            border-left: 5px solid var(--primary-color);
-            padding: 0.75rem;
-            margin-bottom: 0.5rem;
-            border-radius: 4px;
-            cursor: grab;
-            transition: box-shadow 0.2s ease-in-out;
-        }
-        .asset-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            border-color: var(--primary-color);
-        }
+        :root { --primary-color: #059B97; --secondary-color: #f0f8ff; --border-color: #dee2e6; --hover-bg: #e9ecef; --asset-bg: #ffffff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #eef2f5; }
+        .header { background-color: var(--primary-color); color: white; padding: 1rem 1.5rem; margin-bottom: 1rem; border-radius: 0.25rem; }
+        .pane { background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 1.5rem; height: 85vh; display: flex; flex-direction: column; }
+        .pane-header { border-bottom: 2px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem; }
+        #asset-list, #course-tree { overflow-y: auto; flex-grow: 1; }
+        .asset-card { background-color: var(--asset-bg); border: 1px solid var(--border-color); border-left: 5px solid var(--primary-color); padding: 0.75rem; margin-bottom: 0.5rem; border-radius: 4px; cursor: grab; transition: box-shadow 0.2s ease-in-out; }
+        .asset-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.15); border-color: var(--primary-color); }
         .asset-card h6 { margin-bottom: 0.2rem; font-size: 0.9rem; }
         .asset-card p { margin-bottom: 0; font-size: 0.75rem; color: #6c757d; }
         .sortable-ghost { opacity: 0.4; background-color: #c8ebf9; }
-        .tree-node {
-            padding-left: 20px;
-            position: relative;
-        }
-        .tree-node-content {
-            padding: 5px;
-            border-radius: 4px;
-            margin-bottom: 2px;
-            border: 1px solid transparent;
-        }
-        .tree-node-content.drop-target {
-            border: 1px dashed var(--primary-color);
-            background-color: var(--secondary-color);
-        }
-        .tree-node-content-inner {
-            display: flex;
-            align-items: flex-start;
-        }
-        .tree-toggle {
-            cursor: pointer;
-            margin-right: 8px;
-            color: #6c757d;
-            font-size: 1.2em;
-            transition: transform 0.2s;
-            line-height: 1.5;
-        }
+        .tree-node { padding-left: 20px; position: relative; }
+        .tree-node-content { padding: 5px; border-radius: 4px; margin-bottom: 2px; border: 1px solid transparent; }
+        .tree-node-content.drop-target { border: 1px dashed var(--primary-color); background-color: var(--secondary-color); }
+        .tree-node-content-inner { display: flex; align-items: flex-start; }
+        .tree-toggle { cursor: pointer; margin-right: 8px; color: #6c757d; font-size: 1.2em; transition: transform 0.2s; line-height: 1.5; }
         .tree-toggle.collapsed { transform: rotate(-90deg); }
         .tree-children { display: block; }
         .tree-children.collapsed { display: none; }
-        .node-icon {
-            margin-right: 5px;
-            color: #6c757d;
-            margin-top: 2px;
-        }
+        .node-icon { margin-right: 5px; color: #6c757d; margin-top: 2px; }
         .node-title-wrapper { display: flex; flex-direction: column; }
         .node-title { font-weight: 500; }
-        .node-description {
-            font-size: 0.8rem;
-            color: #6c757d;
-            white-space: normal;
-            margin-top: 4px;
-        }
-        .node-asset-id {
-            font-size: 0.7rem;
-            color: #adb5bd;
-            font-family: monospace;
-            margin-top: 4px;
-        }
-        #filter-controls .form-control, #filter-controls .form-select {
-            margin-bottom: 0.5rem;
-        }
+        .node-description { font-size: 0.8rem; color: #6c757d; white-space: normal; margin-top: 4px; }
+        .node-asset-id { font-size: 0.7rem; color: #adb5bd; font-family: monospace; margin-top: 4px; }
+        #filter-controls .form-control, #filter-controls .form-select { margin-bottom: 0.5rem; }
     </style>
 </head>
 <body>
@@ -124,47 +40,27 @@
             <h1 class="h3">Course Tree Builder Prototype V5</h1>
             <p class="mb-0">A visual concept for building course trees from a central asset collection.</p>
         </div>
-
         <div class="row">
             <div class="col-md-5">
                 <div class="pane">
                     <div class="pane-header">
                         <h2 class="h5">Asset Collection</h2>
                         <div id="filter-controls" class="row">
-                            <div class="col-12">
-                                <input type="text" id="search-box" class="form-control" placeholder="Search by asset name...">
-                            </div>
-                            <div class="col-6">
-                                <select id="type-filter" class="form-select">
-                                    <option value="">All Asset Types</option>
-                                </select>
-                            </div>
-                            <div class="col-6">
-                                <select id="audience-filter" class="form-select">
-                                    <option value="">All Audiences</option>
-                                    <option value="STU_ONLY">Student</option>
-                                    <option value="TCH_ONLY">Teacher</option>
-                                    <option value="STU_TCH">Student and Teacher</option>
-                                </select>
-                            </div>
+                            <div class="col-12"><input type="text" id="search-box" class="form-control" placeholder="Search by asset name..."></div>
+                            <div class="col-6"><select id="type-filter" class="form-select"><option value="">All Asset Types</option></select></div>
+                            <div class="col-6"><select id="audience-filter" class="form-select"><option value="">All Audiences</option><option value="STU_ONLY">Student</option><option value="TCH_ONLY">Teacher</option><option value="STU_TCH">Student and Teacher</option></select></div>
                         </div>
                     </div>
                     <div id="asset-list"></div>
                 </div>
             </div>
-
             <div class="col-md-7">
                 <div class="pane">
                     <div class="pane-header">
                         <h2 class="h5">Course Tree Builder</h2>
                         <div class="btn-toolbar" role="toolbar">
-                            <div class="btn-group me-2" role="group">
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="expand-all">Expand All</button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="collapse-all">Collapse All</button>
-                            </div>
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-sm btn-primary" id="apply-template">Apply Lesson Template (Rule-Based Demo)</button>
-                            </div>
+                            <div class="btn-group me-2" role="group"><button type="button" class="btn btn-sm btn-outline-secondary" id="expand-all">Expand All</button><button type="button" class="btn btn-sm btn-outline-secondary" id="collapse-all">Collapse All</button></div>
+                            <div class="btn-group" role="group"><button type="button" class="btn btn-sm btn-primary" id="apply-template">Apply Lesson Template (Rule-Based Demo)</button></div>
                         </div>
                     </div>
                     <div id="course-tree"></div>
@@ -172,234 +68,107 @@
             </div>
         </div>
     </div>
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            let allAssets = [];
-            let courseTreeData = [];
-
-            // --- 1. DATA LOADING AND PARSING ---
+            let allAssets = []; let courseTreeData = [];
             function parseCSV(text) {
-                const lines = text.trim().split('\n');
-                const header = lines[0].trim().split(',').map(h => h.replace(/"/g, ''));
-                const data = [];
+                const lines = text.trim().split('\n'); const header = lines[0].trim().split(',').map(h => h.replace(/"/g, '')); const data = [];
                 for (let i = 1; i < lines.length; i++) {
-                    const obj = {};
-                    let row = lines[i];
-                    let inQuotes = false;
-                    let value = '';
-                    let fieldIndex = 0;
+                    const obj = {}; let row = lines[i]; let inQuotes = false; let value = ''; let fieldIndex = 0;
                     for (let j = 0; j < row.length; j++) {
                         let char = row[j];
-                        if (char === '"' && (j === 0 || row[j-1] === ',' || row[j-1] === '[')) {
-                           if (row[j+1] === '"') { value += '"'; j++; } else { inQuotes = !inQuotes; }
-                        } else if (char === ',' && !inQuotes) {
-                            obj[header[fieldIndex]] = value.trim();
-                            value = '';
-                            fieldIndex++;
-                        } else { value += char; }
+                        if (char === '"' && (j === 0 || row[j-1] === ',' || row[j-1] === '[')) { if (row[j+1] === '"') { value += '"'; j++; } else { inQuotes = !inQuotes; } }
+                        else if (char === ',' && !inQuotes) { obj[header[fieldIndex]] = value.trim(); value = ''; fieldIndex++; } else { value += char; }
                     }
-                    obj[header[fieldIndex]] = value.trim();
-                    data.push(obj);
-                }
-                return data;
+                    obj[header[fieldIndex]] = value.trim(); data.push(obj);
+                } return data;
             }
-
             async function loadData() {
                 try {
-                    const [assetResponse, treeResponse] = await Promise.all([
-                        fetch('data/Algebra I Asset Collection.csv'),
-                        fetch('data/High School Math Solution Algebra I Course Tree.csv')
-                    ]);
-                    const assetText = await assetResponse.text();
-                    const treeText = await treeResponse.text();
-                    allAssets = parseCSV(assetText);
-                    const courseTreeFlat = parseCSV(treeText);
-                    courseTreeData = buildTree(courseTreeFlat);
-                } catch (error) {
-                    console.error("Error loading or parsing CSV data:", error);
-                    document.getElementById('course-tree').innerHTML = `<div class="alert alert-danger">Failed to load data. Make sure the CSV files are in a 'data' subdirectory. Check console for details.</div>`;
-                }
+                    const [assetResponse, treeResponse] = await Promise.all([ fetch('data/Algebra I Asset Collection.csv'), fetch('data/High School Math Solution Algebra I Course Tree.csv') ]);
+                    const assetText = await assetResponse.text(); const treeText = await treeResponse.text();
+                    allAssets = parseCSV(assetText); const courseTreeFlat = parseCSV(treeText); courseTreeData = buildTree(courseTreeFlat);
+                } catch (error) { console.error("Error loading CSV:", error); document.getElementById('course-tree').innerHTML = `<div class="alert alert-danger">Failed to load data. Make sure files are in a 'data' subdirectory.</div>`; }
             }
-
-            // --- 2. DATA TRANSFORMATION ---
             function buildTree(flatData) {
-                const nodesById = {};
-                flatData.forEach(node => {
-                    nodesById[node['Tier Code']] = { ...node, children: [] };
-                });
-                const roots = [];
-                flatData.forEach(node => {
-                    const parentCode = node['Parent Tier Code'];
-                    if (parentCode && nodesById[parentCode]) {
-                        nodesById[parentCode].children.push(nodesById[node['Tier Code']]);
-                    } else {
-                        roots.push(nodesById[node['Tier Code']]);
-                    }
-                });
-                return roots;
+                const nodesById = {}; flatData.forEach(node => { nodesById[node['Tier Code']] = { ...node, children: [] }; });
+                const roots = []; flatData.forEach(node => { const parentCode = node['Parent Tier Code']; if (parentCode && nodesById[parentCode]) { nodesById[parentCode].children.push(nodesById[node['Tier Code']]); } else { roots.push(nodesById[node['Tier Code']]); } }); return roots;
             }
-
-            // --- 3. RENDERING ---
             function renderTree(nodes, container) {
                 nodes.forEach(node => {
-                    if (node['Tier Type Title'] === 'Learning Object' && !findAssetById(node['Tier Code'])) {
-                        return; 
-                    }
-                    const nodeElement = document.createElement('div');
-                    nodeElement.classList.add('tree-node');
-                    nodeElement.dataset.tierCode = node['Tier Code'];
-                    nodeElement.dataset.tierType = node['Tier Type Title'];
-                    const contentWrapper = document.createElement('div');
-                    contentWrapper.classList.add('tree-node-content');
-                    const contentInner = document.createElement('div');
-                    contentInner.classList.add('tree-node-content-inner');
-                    const icon = document.createElement('span');
-                    icon.classList.add('material-icons', 'node-icon');
-                    icon.textContent = getNodeIcon(node['Tier Type Title']);
-                    const titleWrapper = document.createElement('div');
-                    titleWrapper.classList.add('node-title-wrapper');
-                    const titleSpan = document.createElement('span');
-                    titleSpan.classList.add('node-title');
-                    
+                    if (node['Tier Type Title'] === 'Learning Object' && !findAssetById(node['Tier Code'])) { return; }
+                    const nodeElement = document.createElement('div'); nodeElement.classList.add('tree-node'); nodeElement.dataset.tierCode = node['Tier Code']; nodeElement.dataset.tierType = node['Tier Type Title'];
+                    const contentWrapper = document.createElement('div'); contentWrapper.classList.add('tree-node-content');
+                    const contentInner = document.createElement('div'); contentInner.classList.add('tree-node-content-inner');
+                    const icon = document.createElement('span'); icon.classList.add('material-icons', 'node-icon'); icon.textContent = getNodeIcon(node['Tier Type Title']);
+                    const titleWrapper = document.createElement('div'); titleWrapper.classList.add('node-title-wrapper');
+                    const titleSpan = document.createElement('span'); titleSpan.classList.add('node-title');
                     if (node['Tier Type Title'] === 'Learning Object') {
                         const asset = findAssetById(node['Tier Code']);
                         titleSpan.textContent = asset.curriculumTreeDisplayName;
-                        const descriptionP = document.createElement('p');
-                        descriptionP.classList.add('node-description');
-                        descriptionP.textContent = asset.description || '';
-                        titleWrapper.appendChild(descriptionP);
-                        const assetIdSpan = document.createElement('small');
-                        assetIdSpan.classList.add('node-asset-id');
-                        assetIdSpan.textContent = `ID: ${asset.assetId}`;
-                        titleWrapper.appendChild(assetIdSpan);
+                        const descriptionP = document.createElement('p'); descriptionP.classList.add('node-description'); descriptionP.textContent = asset.description || ''; titleWrapper.appendChild(descriptionP);
+                        const assetIdSpan = document.createElement('small'); assetIdSpan.classList.add('node-asset-id'); assetIdSpan.textContent = `ID: ${asset.assetId}`; titleWrapper.appendChild(assetIdSpan);
                     } else {
-                        titleSpan.textContent = node['Tier Title'];
-                        contentWrapper.setAttribute('data-bs-toggle', 'tooltip');
-                        contentWrapper.setAttribute('data-bs-placement', 'right');
-                        contentWrapper.title = node.Description || 'No description available.';
+                        titleSpan.textContent = node['Tier Title']; contentWrapper.setAttribute('data-bs-toggle', 'tooltip'); contentWrapper.setAttribute('data-bs-placement', 'right'); contentWrapper.title = node.Description || 'No description available.';
                     }
-                    
-                    titleWrapper.prepend(titleSpan);
-                    contentInner.appendChild(icon);
-                    contentInner.appendChild(titleWrapper);
-                    contentWrapper.appendChild(contentInner);
-                    
-                    const childrenContainer = document.createElement('div');
-                    childrenContainer.classList.add('tree-children');
-                    if (node.children.length > 0) {
-                        renderTree(node.children, childrenContainer);
-                    }
-                    
+                    titleWrapper.prepend(titleSpan); contentInner.appendChild(icon); contentInner.appendChild(titleWrapper); contentWrapper.appendChild(contentInner);
+                    const childrenContainer = document.createElement('div'); childrenContainer.classList.add('tree-children');
+                    if (node.children.length > 0) { renderTree(node.children, childrenContainer); }
                     if (childrenContainer.hasChildNodes()) {
-                        const toggle = document.createElement('span');
-                        toggle.classList.add('material-icons', 'tree-toggle');
-                        toggle.textContent = 'arrow_drop_down';
-                        contentInner.insertBefore(toggle, icon);
-                        nodeElement.appendChild(childrenContainer);
+                        const toggle = document.createElement('span'); toggle.classList.add('material-icons', 'tree-toggle'); toggle.textContent = 'arrow_drop_down'; contentInner.insertBefore(toggle, icon); nodeElement.appendChild(childrenContainer);
                     }
-                    
                     nodeElement.prepend(contentWrapper);
-                    if (['Lesson', 'Topic', 'Sub_Section'].includes(node['Tier Type Title'])) {
-                        contentWrapper.classList.add('drop-target');
-                    }
+                    if (['Lesson', 'Topic', 'Sub_Section'].includes(node['Tier Type Title'])) { contentWrapper.classList.add('drop-target'); }
                     container.appendChild(nodeElement);
                 });
             }
-
             function getNodeIcon(tierType) {
-                switch(tierType) {
-                    case 'Course': return 'school'; case 'Module': return 'view_module'; case 'Topic': return 'folder_open';
-                    case 'Lesson': return 'class'; case 'Sub_Section': return 'segment'; case 'Learning Object': return 'article';
-                    default: return 'lens_blur';
-                }
+                switch(tierType) { case 'Course': return 'school'; case 'Module': return 'view_module'; case 'Topic': return 'folder_open'; case 'Lesson': return 'class'; case 'Sub_Section': return 'segment'; case 'Learning Object': return 'article'; default: return 'lens_blur'; }
             }
-            
             function renderAssetCollection(assets) {
-                const listContainer = document.getElementById('asset-list');
-                listContainer.innerHTML = '';
+                const listContainer = document.getElementById('asset-list'); listContainer.innerHTML = '';
                 assets.forEach(asset => {
-                    const card = document.createElement('div');
-                    card.classList.add('asset-card');
-                    card.dataset.assetId = asset.assetId;
+                    const card = document.createElement('div'); card.classList.add('asset-card'); card.dataset.assetId = asset.assetId;
                     card.innerHTML = `<h6>${asset.displayName}</h6><p><strong>Type:</strong> ${asset.assetActivityTypeId}</p>`;
                     listContainer.appendChild(card);
                 });
             }
-
             function populateFilters() {
-                // Correctly use assetActivityTypeId for the type filter
                 const types = [...new Set(allAssets.map(a => a.assetActivityTypeId).filter(Boolean))].sort();
                 const typeFilter = document.getElementById('type-filter');
-                types.forEach(type => {
-                    const option = document.createElement('option');
-                    option.value = type;
-                    option.textContent = type;
-                    typeFilter.appendChild(option);
-                });
+                types.forEach(type => { if (type) { const option = document.createElement('option'); option.value = type; option.textContent = type; typeFilter.appendChild(option); } });
             }
-
-            // --- 4. INTERACTIVITY & LOGIC ---
             function handleFiltering() {
-                const searchTerm = document.getElementById('search-box').value.toLowerCase();
-                const selectedType = document.getElementById('type-filter').value;
-                const selectedAudience = document.getElementById('audience-filter').value;
-
+                const searchTerm = document.getElementById('search-box').value.toLowerCase(); const selectedType = document.getElementById('type-filter').value; const selectedAudience = document.getElementById('audience-filter').value;
                 const filteredAssets = allAssets.filter(asset => {
                     const nameMatch = asset.displayName.toLowerCase().includes(searchTerm);
                     const typeMatch = !selectedType || asset.assetActivityTypeId === selectedType;
-                    
                     let audienceMatch = true;
                     if (selectedAudience) {
                         try {
-                            const cleanAudienceString = asset.audiences.replace(/^"|"$/g, '').replace(/""/g, '"');
-                            const audiences = JSON.parse(cleanAudienceString);
-                            
-                            if (selectedAudience === 'STU_ONLY') {
-                                audienceMatch = audiences.length === 1 && audiences[0] === 'STU';
-                            } else if (selectedAudience === 'TCH_ONLY') {
-                                audienceMatch = audiences.length === 1 && audiences[0] === 'TCH';
-                            } else if (selectedAudience === 'STU_TCH') {
-                                audienceMatch = audiences.length === 2 && audiences.includes('STU') && audiences.includes('TCH');
-                            }
+                            const cleanAudienceString = asset.audiences.replace(/^"|"$/g, '').replace(/""/g, '"'); const audiences = JSON.parse(cleanAudienceString);
+                            if (selectedAudience === 'STU_ONLY') { audienceMatch = audiences.length === 1 && audiences[0] === 'STU'; }
+                            else if (selectedAudience === 'TCH_ONLY') { audienceMatch = audiences.length === 1 && audiences[0] === 'TCH'; }
+                            else if (selectedAudience === 'STU_TCH') { audienceMatch = audiences.length === 2 && audiences.includes('STU') && audiences.includes('TCH'); }
                         } catch (e) { audienceMatch = false; }
                     }
                     return nameMatch && typeMatch && audienceMatch;
                 });
                 renderAssetCollection(filteredAssets);
             }
-            
             function findAssetById(assetId) { return allAssets.find(a => a.assetId === assetId); }
-
             function initDragAndDrop() {
                 new Sortable(document.getElementById('asset-list'), { group: { name: 'shared', pull: 'clone', put: false }, sort: false });
                 document.querySelectorAll('.drop-target').forEach(target => {
                     let childrenContainer = target.parentElement.querySelector('.tree-children');
-                    if (!childrenContainer) {
-                        childrenContainer = document.createElement('div');
-                        childrenContainer.classList.add('tree-children');
-                        target.parentElement.appendChild(childrenContainer);
-                    }
-                    new Sortable(childrenContainer, {
-                        group: 'shared',
-                        onAdd: evt => {
-                            const asset = findAssetById(evt.item.dataset.assetId);
-                            if (!asset) return;
-                            const newAssetNode = createAssetNode(asset);
-                            evt.item.replaceWith(newAssetNode);
-                        }
-                    });
+                    if (!childrenContainer) { childrenContainer = document.createElement('div'); childrenContainer.classList.add('tree-children'); target.parentElement.appendChild(childrenContainer); }
+                    new Sortable(childrenContainer, { group: 'shared', onAdd: evt => { const asset = findAssetById(evt.item.dataset.assetId); if (!asset) return; const newAssetNode = createAssetNode(asset); evt.item.replaceWith(newAssetNode); } });
                 });
             }
-            
             function createAssetNode(asset) {
-                const nodeElement = document.createElement('div');
-                nodeElement.classList.add('tree-node');
-                nodeElement.dataset.tierCode = asset.assetId;
-                nodeElement.dataset.tierType = 'Learning Object';
+                const nodeElement = document.createElement('div'); nodeElement.classList.add('tree-node'); nodeElement.dataset.tierCode = asset.assetId; nodeElement.dataset.tierType = 'Learning Object';
                 nodeElement.innerHTML = `
                     <div class="tree-node-content">
                         <div class="tree-node-content-inner">
@@ -413,57 +182,34 @@
                     </div>`;
                 return nodeElement;
             }
-
             function applyLessonTemplate() {
-                let assetsAdded = 0;
-                document.querySelectorAll('.tree-node[data-tier-type="Lesson"]').forEach(lessonNode => {
+                let assetsAdded = 0; document.querySelectorAll('.tree-node[data-tier-type="Lesson"]').forEach(lessonNode => {
                     const lessonTitle = lessonNode.querySelector('.node-title').textContent.trim();
                     const potentialAssets = allAssets.filter(asset => asset.displayName.startsWith(lessonTitle));
                     let childrenContainer = lessonNode.querySelector('.tree-children');
-                    if (!childrenContainer) {
-                        childrenContainer = document.createElement('div');
-                        childrenContainer.classList.add('tree-children');
-                        lessonNode.appendChild(childrenContainer);
-                    }
+                    if (!childrenContainer) { childrenContainer = document.createElement('div'); childrenContainer.classList.add('tree-children'); lessonNode.appendChild(childrenContainer); }
                     ['DIGITAL-LESSON', 'DIGITAL-SKILLS-PRACTICE'].forEach(assetType => {
                         const assetToPlace = potentialAssets.find(a => a.assetActivityTypeId === assetType);
-                        if (assetToPlace && !childrenContainer.querySelector(`[data-tier-code="${assetToPlace.assetId}"]`)) {
-                            childrenContainer.appendChild(createAssetNode(assetToPlace));
-                            assetsAdded++;
-                        }
+                        if (assetToPlace && !childrenContainer.querySelector(`[data-tier-code="${assetToPlace.assetId}"]`)) { childrenContainer.appendChild(createAssetNode(assetToPlace)); assetsAdded++; }
                     });
                 });
                 alert(`${assetsAdded} assets were auto-populated based on the lesson template rules.`);
             }
-
-            // --- 5. INITIALIZATION & EVENT LISTENERS ---
-            await loadData();
-            renderAssetCollection(allAssets);
-            populateFilters();
-            renderTree(courseTreeData, document.getElementById('course-tree'));
-            initDragAndDrop();
-            
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
-
-            document.getElementById('search-box').addEventListener('input', handleFiltering);
-            document.getElementById('type-filter').addEventListener('change', handleFiltering);
-            document.getElementById('audience-filter').addEventListener('change', handleFiltering);
-            document.getElementById('expand-all').addEventListener('click', () => {
-                document.querySelectorAll('.tree-children, .tree-toggle').forEach(el => el.classList.remove('collapsed'));
-            });
-            document.getElementById('collapse-all').addEventListener('click', () => {
-                document.querySelectorAll('.tree-node[data-tier-type="Module"] .tree-children, .tree-node[data-tier-type="Module"] .tree-toggle').forEach(el => el.classList.add('collapsed'));
-            });
-            document.getElementById('apply-template').addEventListener('click', applyLessonTemplate);
-            document.getElementById('course-tree').addEventListener('click', e => {
-                const toggle = e.target.closest('.tree-toggle');
-                if (toggle) {
-                    toggle.classList.toggle('collapsed');
-                    const childrenContainer = toggle.closest('.tree-node').querySelector('.tree-children');
-                    if (childrenContainer) childrenContainer.classList.toggle('collapsed');
-                }
-            });
+            (async () => {
+                await loadData(); renderAssetCollection(allAssets); populateFilters(); renderTree(courseTreeData, document.getElementById('course-tree')); initDragAndDrop();
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+                document.getElementById('search-box').addEventListener('input', handleFiltering);
+                document.getElementById('type-filter').addEventListener('change', handleFiltering);
+                document.getElementById('audience-filter').addEventListener('change', handleFiltering);
+                document.getElementById('expand-all').addEventListener('click', () => { document.querySelectorAll('.tree-children, .tree-toggle').forEach(el => el.classList.remove('collapsed')); });
+                document.getElementById('collapse-all').addEventListener('click', () => { document.querySelectorAll('.tree-node[data-tier-type="Module"] .tree-children, .tree-node[data-tier-type="Module"] .tree-toggle').forEach(el => el.classList.add('collapsed')); });
+                document.getElementById('apply-template').addEventListener('click', applyLessonTemplate);
+                document.getElementById('course-tree').addEventListener('click', e => {
+                    const toggle = e.target.closest('.tree-toggle');
+                    if (toggle) { toggle.classList.toggle('collapsed'); const childrenContainer = toggle.closest('.tree-node').querySelector('.tree-children'); if (childrenContainer) childrenContainer.classList.toggle('collapsed'); }
+                });
+            })();
         });
     </script>
 </body>
