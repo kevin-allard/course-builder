@@ -164,8 +164,7 @@
             let allAssets = [];
             let courseTreeData = [];
 
-            // --- 1. DATA LOADING AND PARSING ---
-             function parseCSV(text) {
+            function parseCSV(text) {
                 const lines = text.trim().split('\n');
                 const headerLine = lines.shift().trim();
                 const headers = headerLine.split(',').map(h => h.replace(/^"|"$/g, ''));
@@ -192,7 +191,7 @@
                             value += char;
                         }
                     }
-                    values.push(value); 
+                    values.push(value);
 
                     headers.forEach((header, i) => {
                         obj[header] = (values[i] || '').trim();
@@ -209,7 +208,9 @@
                     ]);
                     const assetText = await assetResponse.text();
                     const treeText = await treeResponse.text();
-                    allAssets = parseCSV(assetText);
+                    let parsedAssets = parseCSV(assetText);
+
+                    allAssets = parsedAssets.filter(asset => asset.locales !== '[""es""]');
                     
                     allAssets.forEach(asset => {
                         try {
@@ -228,7 +229,6 @@
                 }
             }
 
-            // --- 2. DATA TRANSFORMATION ---
             function buildTree(flatData) {
                 const nodesById = {};
                 flatData.forEach(node => { nodesById[node['Tier Code']] = { ...node, children: [] }; });
@@ -244,12 +244,9 @@
                 return roots;
             }
 
-            // --- 3. RENDERING ---
             function renderTree(nodes, container) {
                 nodes.forEach(node => {
-                    if (node['Tier Type Title'] === 'Learning Object' && !findAssetById(node['Tier Code'])) {
-                        return; 
-                    }
+                    if (node['Tier Type Title'] === 'Learning Object' && !findAssetById(node['Tier Code'])) { return; }
                     const nodeElement = document.createElement('div');
                     nodeElement.classList.add('tree-node');
                     nodeElement.dataset.tierCode = node['Tier Code'];
