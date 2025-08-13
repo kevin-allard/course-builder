@@ -18,14 +18,11 @@
             --border-color: #dee2e6;
             --hover-bg: #e9ecef;
             --asset-bg: #ffffff;
-            --tree-bg: #f8f9fa;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #eef2f5;
         }
-
         .header {
             background-color: var(--primary-color);
             color: white;
@@ -33,7 +30,6 @@
             margin-bottom: 1rem;
             border-radius: 0.25rem;
         }
-
         .pane {
             background-color: white;
             border-radius: 8px;
@@ -43,19 +39,15 @@
             display: flex;
             flex-direction: column;
         }
-        
         .pane-header {
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 1rem;
             margin-bottom: 1rem;
         }
-
         #asset-list, #course-tree {
             overflow-y: auto;
             flex-grow: 1;
         }
-
-        /* Asset Card Styling */
         .asset-card {
             background-color: var(--asset-bg);
             border: 1px solid var(--border-color);
@@ -70,23 +62,9 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             border-color: var(--primary-color);
         }
-        .asset-card h6 {
-            margin-bottom: 0.2rem;
-            font-size: 0.9rem;
-        }
-        .asset-card p {
-            margin-bottom: 0;
-            font-size: 0.75rem;
-            color: #6c757d;
-        }
-
-        /* SortableJS Ghost Class */
-        .sortable-ghost {
-            opacity: 0.4;
-            background-color: #c8ebf9;
-        }
-
-        /* Course Tree Styling */
+        .asset-card h6 { margin-bottom: 0.2rem; font-size: 0.9rem; }
+        .asset-card p { margin-bottom: 0; font-size: 0.75rem; color: #6c757d; }
+        .sortable-ghost { opacity: 0.4; background-color: #c8ebf9; }
         .tree-node {
             padding-left: 20px;
             position: relative;
@@ -103,38 +81,26 @@
         }
         .tree-node-content-inner {
             display: flex;
-            align-items: flex-start; /* Align icon to the top */
+            align-items: flex-start;
         }
-        
         .tree-toggle {
             cursor: pointer;
             margin-right: 8px;
             color: #6c757d;
             font-size: 1.2em;
             transition: transform 0.2s;
-            line-height: 1.5; /* Align toggle with text */
+            line-height: 1.5;
         }
-        .tree-toggle.collapsed {
-            transform: rotate(-90deg);
-        }
-        .tree-children {
-            display: block;
-        }
-        .tree-children.collapsed {
-            display: none;
-        }
+        .tree-toggle.collapsed { transform: rotate(-90deg); }
+        .tree-children { display: block; }
+        .tree-children.collapsed { display: none; }
         .node-icon {
             margin-right: 5px;
             color: #6c757d;
-            margin-top: 2px; /* Align icon better */
+            margin-top: 2px;
         }
-        .node-title-wrapper {
-            display: flex;
-            flex-direction: column;
-        }
-        .node-title {
-            font-weight: 500;
-        }
+        .node-title-wrapper { display: flex; flex-direction: column; }
+        .node-title { font-weight: 500; }
         .node-description {
             font-size: 0.8rem;
             color: #6c757d;
@@ -147,8 +113,6 @@
             font-family: monospace;
             margin-top: 4px;
         }
-        
-        /* Filter controls */
         #filter-controls .form-control, #filter-controls .form-select {
             margin-bottom: 0.5rem;
         }
@@ -162,7 +126,6 @@
         </div>
 
         <div class="row">
-            <!-- Left Pane: Asset Collection -->
             <div class="col-md-5">
                 <div class="pane">
                     <div class="pane-header">
@@ -186,13 +149,10 @@
                             </div>
                         </div>
                     </div>
-                    <div id="asset-list">
-                        <!-- Asset cards will be dynamically inserted here -->
-                    </div>
+                    <div id="asset-list"></div>
                 </div>
             </div>
 
-            <!-- Right Pane: Course Tree Builder -->
             <div class="col-md-7">
                 <div class="pane">
                     <div class="pane-header">
@@ -202,22 +162,18 @@
                                 <button type="button" class="btn btn-sm btn-outline-secondary" id="expand-all">Expand All</button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" id="collapse-all">Collapse All</button>
                             </div>
-                             <div class="btn-group" role="group">
+                            <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-sm btn-primary" id="apply-template">Apply Lesson Template (Rule-Based Demo)</button>
                             </div>
                         </div>
                     </div>
-                    <div id="course-tree">
-                        <!-- Course tree will be dynamically inserted here -->
-                    </div>
+                    <div id="course-tree"></div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Bootstrap JS for tooltips -->
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- SortableJS Library for Drag and Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 
     <script>
@@ -226,11 +182,9 @@
             let courseTreeData = [];
 
             // --- 1. DATA LOADING AND PARSING ---
-            
             function parseCSV(text) {
                 const lines = text.trim().split('\n');
                 const header = lines[0].trim().split(',').map(h => h.replace(/"/g, ''));
-                
                 const data = [];
                 for (let i = 1; i < lines.length; i++) {
                     const obj = {};
@@ -238,24 +192,15 @@
                     let inQuotes = false;
                     let value = '';
                     let fieldIndex = 0;
-
                     for (let j = 0; j < row.length; j++) {
                         let char = row[j];
-
                         if (char === '"' && (j === 0 || row[j-1] === ',' || row[j-1] === '[')) {
-                           if (row[j+1] === '"') { 
-                                value += '"';
-                                j++;
-                           } else {
-                               inQuotes = !inQuotes;
-                           }
+                           if (row[j+1] === '"') { value += '"'; j++; } else { inQuotes = !inQuotes; }
                         } else if (char === ',' && !inQuotes) {
                             obj[header[fieldIndex]] = value.trim();
                             value = '';
                             fieldIndex++;
-                        } else {
-                            value += char;
-                        }
+                        } else { value += char; }
                     }
                     obj[header[fieldIndex]] = value.trim();
                     data.push(obj);
@@ -269,15 +214,11 @@
                         fetch('data/Algebra I Asset Collection.csv'),
                         fetch('data/High School Math Solution Algebra I Course Tree.csv')
                     ]);
-                    
                     const assetText = await assetResponse.text();
                     const treeText = await treeResponse.text();
-
                     allAssets = parseCSV(assetText);
                     const courseTreeFlat = parseCSV(treeText);
-                    
                     courseTreeData = buildTree(courseTreeFlat);
-
                 } catch (error) {
                     console.error("Error loading or parsing CSV data:", error);
                     document.getElementById('course-tree').innerHTML = `<div class="alert alert-danger">Failed to load data. Make sure the CSV files are in a 'data' subdirectory. Check console for details.</div>`;
@@ -285,13 +226,11 @@
             }
 
             // --- 2. DATA TRANSFORMATION ---
-            
             function buildTree(flatData) {
                 const nodesById = {};
                 flatData.forEach(node => {
                     nodesById[node['Tier Code']] = { ...node, children: [] };
                 });
-
                 const roots = [];
                 flatData.forEach(node => {
                     const parentCode = node['Parent Tier Code'];
@@ -305,43 +244,34 @@
             }
 
             // --- 3. RENDERING ---
-
             function renderTree(nodes, container) {
                 nodes.forEach(node => {
                     if (node['Tier Type Title'] === 'Learning Object' && !findAssetById(node['Tier Code'])) {
-                        return; // Suppress display if asset is not in the collection
+                        return; 
                     }
-
                     const nodeElement = document.createElement('div');
                     nodeElement.classList.add('tree-node');
                     nodeElement.dataset.tierCode = node['Tier Code'];
                     nodeElement.dataset.tierType = node['Tier Type Title'];
-
                     const contentWrapper = document.createElement('div');
                     contentWrapper.classList.add('tree-node-content');
-                    
                     const contentInner = document.createElement('div');
                     contentInner.classList.add('tree-node-content-inner');
-                    
                     const icon = document.createElement('span');
                     icon.classList.add('material-icons', 'node-icon');
                     icon.textContent = getNodeIcon(node['Tier Type Title']);
-
                     const titleWrapper = document.createElement('div');
                     titleWrapper.classList.add('node-title-wrapper');
-                    
                     const titleSpan = document.createElement('span');
                     titleSpan.classList.add('node-title');
                     
                     if (node['Tier Type Title'] === 'Learning Object') {
                         const asset = findAssetById(node['Tier Code']);
                         titleSpan.textContent = asset.curriculumTreeDisplayName;
-                        
                         const descriptionP = document.createElement('p');
                         descriptionP.classList.add('node-description');
                         descriptionP.textContent = asset.description || '';
                         titleWrapper.appendChild(descriptionP);
-
                         const assetIdSpan = document.createElement('small');
                         assetIdSpan.classList.add('node-asset-id');
                         assetIdSpan.textContent = `ID: ${asset.assetId}`;
@@ -352,29 +282,27 @@
                         contentWrapper.setAttribute('data-bs-placement', 'right');
                         contentWrapper.title = node.Description || 'No description available.';
                     }
-
+                    
                     titleWrapper.prepend(titleSpan);
                     contentInner.appendChild(icon);
                     contentInner.appendChild(titleWrapper);
                     contentWrapper.appendChild(contentInner);
                     
+                    const childrenContainer = document.createElement('div');
+                    childrenContainer.classList.add('tree-children');
                     if (node.children.length > 0) {
-                        const childrenContainer = document.createElement('div');
-                        childrenContainer.classList.add('tree-children');
                         renderTree(node.children, childrenContainer);
-                        
-                        // Only add toggle and children container if there are visible children
-                        if (childrenContainer.hasChildNodes()) {
-                            const toggle = document.createElement('span');
-                            toggle.classList.add('material-icons', 'tree-toggle');
-                            toggle.textContent = 'arrow_drop_down';
-                            contentInner.insertBefore(toggle, icon);
-                            nodeElement.appendChild(childrenContainer);
-                        }
+                    }
+                    
+                    if (childrenContainer.hasChildNodes()) {
+                        const toggle = document.createElement('span');
+                        toggle.classList.add('material-icons', 'tree-toggle');
+                        toggle.textContent = 'arrow_drop_down';
+                        contentInner.insertBefore(toggle, icon);
+                        nodeElement.appendChild(childrenContainer);
                     }
                     
                     nodeElement.prepend(contentWrapper);
-                    
                     if (['Lesson', 'Topic', 'Sub_Section'].includes(node['Tier Type Title'])) {
                         contentWrapper.classList.add('drop-target');
                     }
@@ -384,12 +312,8 @@
 
             function getNodeIcon(tierType) {
                 switch(tierType) {
-                    case 'Course': return 'school';
-                    case 'Module': return 'view_module';
-                    case 'Topic': return 'folder_open';
-                    case 'Lesson': return 'class';
-                    case 'Sub_Section': return 'segment';
-                    case 'Learning Object': return 'article';
+                    case 'Course': return 'school'; case 'Module': return 'view_module'; case 'Topic': return 'folder_open';
+                    case 'Lesson': return 'class'; case 'Sub_Section': return 'segment'; case 'Learning Object': return 'article';
                     default: return 'lens_blur';
                 }
             }
@@ -401,30 +325,24 @@
                     const card = document.createElement('div');
                     card.classList.add('asset-card');
                     card.dataset.assetId = asset.assetId;
-                    card.innerHTML = `
-                        <h6>${asset.displayName}</h6>
-                        <p><strong>Type:</strong> ${asset.assetActivityTypeId} | <strong>ID:</strong> ${asset.assetId.substring(0, 10)}...</p>
-                    `;
+                    card.innerHTML = `<h6>${asset.displayName}</h6><p><strong>Type:</strong> ${asset.assetActivityTypeId}</p>`;
                     listContainer.appendChild(card);
                 });
             }
 
             function populateFilters() {
-                const types = [...new Set(allAssets.map(a => a.assetActivityTypeId))].sort();
-                
+                // Correctly use assetActivityTypeId for the type filter
+                const types = [...new Set(allAssets.map(a => a.assetActivityTypeId).filter(Boolean))].sort();
                 const typeFilter = document.getElementById('type-filter');
                 types.forEach(type => {
-                    if (type) {
-                        const option = document.createElement('option');
-                        option.value = type;
-                        option.textContent = type;
-                        typeFilter.appendChild(option);
-                    }
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    typeFilter.appendChild(option);
                 });
             }
 
             // --- 4. INTERACTIVITY & LOGIC ---
-
             function handleFiltering() {
                 const searchTerm = document.getElementById('search-box').value.toLowerCase();
                 const selectedType = document.getElementById('type-filter').value;
@@ -441,52 +359,35 @@
                             const audiences = JSON.parse(cleanAudienceString);
                             
                             if (selectedAudience === 'STU_ONLY') {
-                                audienceMatch = audiences.length === 1 && audiences.includes('STU');
+                                audienceMatch = audiences.length === 1 && audiences[0] === 'STU';
                             } else if (selectedAudience === 'TCH_ONLY') {
-                                audienceMatch = audiences.length === 1 && audiences.includes('TCH');
+                                audienceMatch = audiences.length === 1 && audiences[0] === 'TCH';
                             } else if (selectedAudience === 'STU_TCH') {
                                 audienceMatch = audiences.length === 2 && audiences.includes('STU') && audiences.includes('TCH');
                             }
-                        } catch (e) {
-                            audienceMatch = false;
-                        }
+                        } catch (e) { audienceMatch = false; }
                     }
-                    
                     return nameMatch && typeMatch && audienceMatch;
                 });
                 renderAssetCollection(filteredAssets);
             }
             
-            function findAssetById(assetId) {
-                return allAssets.find(a => a.assetId === assetId);
-            }
+            function findAssetById(assetId) { return allAssets.find(a => a.assetId === assetId); }
 
             function initDragAndDrop() {
-                const assetListEl = document.getElementById('asset-list');
-                const courseTreeEl = document.getElementById('course-tree');
-
-                new Sortable(assetListEl, {
-                    group: { name: 'shared', pull: 'clone', put: false },
-                    sort: false,
-                    animation: 150
-                });
-
-                const dropTargets = courseTreeEl.querySelectorAll('.drop-target');
-                dropTargets.forEach(target => {
+                new Sortable(document.getElementById('asset-list'), { group: { name: 'shared', pull: 'clone', put: false }, sort: false });
+                document.querySelectorAll('.drop-target').forEach(target => {
                     let childrenContainer = target.parentElement.querySelector('.tree-children');
                     if (!childrenContainer) {
                         childrenContainer = document.createElement('div');
                         childrenContainer.classList.add('tree-children');
                         target.parentElement.appendChild(childrenContainer);
                     }
-                    
                     new Sortable(childrenContainer, {
                         group: 'shared',
-                        onAdd: function (evt) {
-                            const assetId = evt.item.dataset.assetId;
-                            const asset = findAssetById(assetId);
+                        onAdd: evt => {
+                            const asset = findAssetById(evt.item.dataset.assetId);
                             if (!asset) return;
-                            
                             const newAssetNode = createAssetNode(asset);
                             evt.item.replaceWith(newAssetNode);
                         }
@@ -499,7 +400,6 @@
                 nodeElement.classList.add('tree-node');
                 nodeElement.dataset.tierCode = asset.assetId;
                 nodeElement.dataset.tierType = 'Learning Object';
-                
                 nodeElement.innerHTML = `
                     <div class="tree-node-content">
                         <div class="tree-node-content-inner">
@@ -510,34 +410,25 @@
                                 <small class="node-asset-id">ID: ${asset.assetId}</small>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 return nodeElement;
             }
 
             function applyLessonTemplate() {
-                const lessonNodes = document.querySelectorAll('.tree-node[data-tier-type="Lesson"]');
                 let assetsAdded = 0;
-                lessonNodes.forEach(lessonNode => {
+                document.querySelectorAll('.tree-node[data-tier-type="Lesson"]').forEach(lessonNode => {
                     const lessonTitle = lessonNode.querySelector('.node-title').textContent.trim();
                     const potentialAssets = allAssets.filter(asset => asset.displayName.startsWith(lessonTitle));
-                    
-                    const template = ['DIGITAL-LESSON', 'DIGITAL-SKILLS-PRACTICE'];
-                    
                     let childrenContainer = lessonNode.querySelector('.tree-children');
                     if (!childrenContainer) {
                         childrenContainer = document.createElement('div');
                         childrenContainer.classList.add('tree-children');
                         lessonNode.appendChild(childrenContainer);
                     }
-
-                    template.forEach(assetType => {
+                    ['DIGITAL-LESSON', 'DIGITAL-SKILLS-PRACTICE'].forEach(assetType => {
                         const assetToPlace = potentialAssets.find(a => a.assetActivityTypeId === assetType);
-                        if (assetToPlace) {
-                            if (childrenContainer.querySelector(`[data-tier-code="${assetToPlace.assetId}"]`)) return;
-                            
-                            const newAssetNode = createAssetNode(assetToPlace);
-                            childrenContainer.appendChild(newAssetNode);
+                        if (assetToPlace && !childrenContainer.querySelector(`[data-tier-code="${assetToPlace.assetId}"]`)) {
+                            childrenContainer.appendChild(createAssetNode(assetToPlace));
                             assetsAdded++;
                         }
                     });
@@ -546,7 +437,6 @@
             }
 
             // --- 5. INITIALIZATION & EVENT LISTENERS ---
-
             await loadData();
             renderAssetCollection(allAssets);
             populateFilters();
@@ -554,34 +444,24 @@
             initDragAndDrop();
             
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
+            tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
 
             document.getElementById('search-box').addEventListener('input', handleFiltering);
             document.getElementById('type-filter').addEventListener('change', handleFiltering);
             document.getElementById('audience-filter').addEventListener('change', handleFiltering);
-            
             document.getElementById('expand-all').addEventListener('click', () => {
-                document.querySelectorAll('.tree-children.collapsed').forEach(el => el.classList.remove('collapsed'));
-                document.querySelectorAll('.tree-toggle.collapsed').forEach(el => el.classList.remove('collapsed'));
+                document.querySelectorAll('.tree-children, .tree-toggle').forEach(el => el.classList.remove('collapsed'));
             });
-
             document.getElementById('collapse-all').addEventListener('click', () => {
-                document.querySelectorAll('.tree-node[data-tier-type="Module"] .tree-children').forEach(el => el.classList.add('collapsed'));
-                document.querySelectorAll('.tree-node[data-tier-type="Module"] .tree-toggle').forEach(el => el.classList.add('collapsed'));
+                document.querySelectorAll('.tree-node[data-tier-type="Module"] .tree-children, .tree-node[data-tier-type="Module"] .tree-toggle').forEach(el => el.classList.add('collapsed'));
             });
-            
             document.getElementById('apply-template').addEventListener('click', applyLessonTemplate);
-
-            document.getElementById('course-tree').addEventListener('click', (e) => {
+            document.getElementById('course-tree').addEventListener('click', e => {
                 const toggle = e.target.closest('.tree-toggle');
                 if (toggle) {
                     toggle.classList.toggle('collapsed');
                     const childrenContainer = toggle.closest('.tree-node').querySelector('.tree-children');
-                    if (childrenContainer) {
-                        childrenContainer.classList.toggle('collapsed');
-                    }
+                    if (childrenContainer) childrenContainer.classList.toggle('collapsed');
                 }
             });
         });
