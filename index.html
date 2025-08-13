@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- V14 CHANGE: Title updated -->
-    <title>Algebra I Course Tree Builder - Prototype V14</title>
+    <!-- V15 CHANGE: Title updated -->
+    <title>Algebra I Course Tree Builder - Prototype V15</title>
     
     <!-- Bootstrap for quick, clean styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -71,13 +71,12 @@
             position: relative;
         }
         .tree-node-content {
-            padding: 8px 5px; /* V14 CHANGE: Increased padding for more info */
+            padding: 8px 5px;
             border-radius: 4px;
             margin-bottom: 2px;
             border: 1px solid transparent;
             position: relative; 
         }
-        /* V14 CHANGE: Styles for new interactive elements and info displays */
         .tree-node-content:hover .delete-asset-btn, .tree-node-content:hover .add-node-btn {
             opacity: 1;
         }
@@ -89,74 +88,45 @@
             transition: opacity 0.2s;
             font-size: 1.1rem;
         }
-        .delete-asset-btn {
-            right: 5px;
-            color: #dc3545;
-        }
-        .add-node-btn {
-            right: 25px;
-            color: #0d6efd;
-        }
-        .drag-handle {
-            cursor: move;
-            color: #adb5bd;
-            margin-right: 5px;
-        }
-        .tree-node-content.drop-target {
-            border: 1px dashed var(--primary-color);
-            background-color: var(--secondary-color);
-        }
-        .tree-node-content-inner {
-            display: flex;
-            align-items: flex-start;
-        }
-        .tree-toggle {
-            cursor: pointer;
-            margin-right: 8px;
-            color: #6c757d;
-            font-size: 1.2em;
-            transition: transform 0.2s;
-            line-height: 1.5;
-        }
+        .delete-asset-btn { right: 5px; color: #dc3545; }
+        .add-node-btn { right: 25px; color: #0d6efd; }
+        .drag-handle { cursor: move; color: #adb5bd; margin-right: 5px; }
+        .tree-node-content.drop-target { border: 1px dashed var(--primary-color); background-color: var(--secondary-color); }
+        .tree-node-content-inner { display: flex; align-items: flex-start; }
+        .tree-toggle { cursor: pointer; margin-right: 8px; color: #6c757d; font-size: 1.2em; transition: transform 0.2s; line-height: 1.5; }
         .tree-toggle.collapsed { transform: rotate(-90deg); }
         .tree-children { display: block; }
         .tree-children.collapsed { display: none; }
-        .node-icon {
-            margin-right: 5px;
-            color: #6c757d;
-            margin-top: 2px;
-        }
+        .node-icon { margin-right: 5px; color: #6c757d; margin-top: 2px; }
         .node-title-wrapper { display: flex; flex-direction: column; flex-grow: 1; }
         .node-title { font-weight: 500; }
-        .node-description {
-            font-size: 0.8rem;
-            color: #6c757d;
-            font-style: italic;
-            white-space: normal;
-            margin-top: 4px;
+        .node-description { font-size: 0.8rem; color: #6c757d; font-style: italic; white-space: normal; margin-top: 4px; }
+        /* V15 CHANGE: New and updated styles for Tier Code display */
+        .node-title-line {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Changed from space-between to keep it left-aligned */
+            width: 100%;
         }
-        .node-tier-codes { /* V14 CHANGE: Style for tier code display */
-            font-size: 0.7rem;
-            color: #adb5bd;
+        .node-title-codes {
+            margin-left: 1.5rem; /* Space between title and codes */
             font-family: monospace;
-            margin-top: 6px;
-            background-color: #f8f9fa;
-            padding: 2px 4px;
-            border-radius: 3px;
-            line-height: 1.2;
+            font-size: 0.8em; /* Slightly smaller than title */
+            color: #6c757d; /* Match description color */
+            white-space: nowrap; /* Prevent wrapping */
         }
-        #filter-controls .form-control, #filter-controls .form-select {
-            margin-bottom: 0.5rem;
+        .node-title-codes span {
+            margin-right: 1rem; /* Space between the two codes */
         }
+        #filter-controls .form-control, #filter-controls .form-select { margin-bottom: 0.5rem; }
     </style>
 </head>
 <body>
     <div class="container-fluid p-3">
         <div class="header">
-            <h1 class="h3">Course Tree Builder Prototype V14</h1>
+            <h1 class="h3">Course Tree Builder Prototype V15</h1>
             <p class="mb-0">A visual concept for building course trees from a central asset collection.</p>
         </div>
-
         <div class="row">
             <div class="col-md-5">
                 <div class="pane">
@@ -171,7 +141,6 @@
                     <div id="asset-list"></div>
                 </div>
             </div>
-
             <div class="col-md-7">
                 <div class="pane">
                     <div class="pane-header">
@@ -188,7 +157,6 @@
         </div>
     </div>
     
-    <!-- V14 CHANGE: Add Node Modal HTML -->
     <div class="modal fade" id="addNodeModal" tabindex="-1" aria-labelledby="addNodeModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -232,76 +200,25 @@
         document.addEventListener('DOMContentLoaded', async () => {
             let allAssets = [];
             let initialCourseTreeData = [];
-            // V14 CHANGE: Get reference to the modal
             const addNodeModal = new bootstrap.Modal(document.getElementById('addNodeModal'));
 
-            function parseCSV(text) {
-                const lines = text.trim().split('\n');
-                const headerLine = lines.shift().trim();
-                const headers = headerLine.split(',').map(h => h.replace(/^"|"$/g, ''));
-
-                return lines.map(line => {
-                    const obj = {};
-                    let values = [];
-                    let inQuotes = false;
-                    let value = '';
-
-                    for (let i = 0; i < line.length; i++) {
-                        const char = line[i];
-                        if (char === '"') {
-                            if (inQuotes && line[i+1] === '"') { value += '"'; i++; } else { inQuotes = !inQuotes; }
-                        } else if (char === ',' && !inQuotes) { values.push(value); value = ''; } else { value += char; }
-                    }
-                    values.push(value);
-                    headers.forEach((header, i) => { obj[header] = (values[i] || '').trim(); });
-                    return obj;
+            function parseCSV(text) { /* ... unchanged ... */ }
+            async function loadData() { /* ... unchanged ... */ }
+            function buildTree(flatData) { /* ... unchanged ... */ }
+            
+            // V15 CHANGE (BUG FIX): Restored the full body of this function.
+            function renderAssetCollection(assets) {
+                const listContainer = document.getElementById('asset-list');
+                listContainer.innerHTML = '';
+                assets.forEach(asset => {
+                    const card = document.createElement('div');
+                    card.classList.add('asset-card');
+                    card.dataset.assetId = asset.assetId;
+                    card.innerHTML = `<h6>${asset.displayName}</h6><p><strong>Type:</strong> ${asset.assetActivityTypeId}</p>`;
+                    listContainer.appendChild(card);
                 });
-            }
-
-            async function loadData() {
-                try {
-                    const [assetResponse, treeResponse] = await Promise.all([
-                        fetch('data/Algebra I Asset Collection.csv'),
-                        fetch('data/High School Math Solution Algebra I Course Tree.csv')
-                    ]);
-                    const assetText = await assetResponse.text();
-                    const treeText = await treeResponse.text();
-                    
-                    let parsedAssets = parseCSV(assetText);
-                    parsedAssets = parsedAssets.filter(asset => asset && asset.assetId && asset.displayName);
-                    allAssets = parsedAssets.filter(asset => !(asset.locales && asset.locales.includes('es')));
-                    allAssets.forEach(asset => {
-                        try {
-                            const cleanAudienceString = asset.audiences.replace(/^"|"$/g, '').replace(/""/g, '"');
-                            asset.parsedAudiences = JSON.parse(cleanAudienceString);
-                        } catch (e) { asset.parsedAudiences = []; }
-                    });
-                    
-                    let courseTreeFlat = parseCSV(treeText);
-                    courseTreeFlat = courseTreeFlat.filter(row => row && row['Tier Code']);
-                    initialCourseTreeData = buildTree(courseTreeFlat);
-                } catch (error) {
-                    console.error("Error loading or parsing CSV data:", error);
-                    document.getElementById('course-tree').innerHTML = `<div class="alert alert-danger">Failed to load data. See console for details.</div>`;
-                }
-            }
-
-            function buildTree(flatData) {
-                const nodesById = {};
-                flatData.forEach(node => { nodesById[node['Tier Code']] = { ...node, children: [] }; });
-                const roots = [];
-                flatData.forEach(node => {
-                    const parentCode = node['Parent Tier Code'];
-                    if (parentCode && nodesById[parentCode]) {
-                        nodesById[parentCode].children.push(nodesById[node['Tier Code']]);
-                    } else {
-                        roots.push(nodesById[node['Tier Code']]);
-                    }
-                });
-                return roots;
             }
             
-            // V14 CHANGE: Major update to render more information and interactive elements
             function renderTree(nodes, container, parentCode = '') {
                 nodes.forEach(node => {
                     const tierType = node['Tier Type Title'];
@@ -311,7 +228,7 @@
                     nodeElement.classList.add('tree-node');
                     nodeElement.dataset.tierCode = node['Tier Code'];
                     nodeElement.dataset.tierType = tierType;
-                    nodeElement.dataset.parentTierCode = parentCode; // Store parent code
+                    nodeElement.dataset.parentTierCode = parentCode;
 
                     const contentWrapper = document.createElement('div');
                     contentWrapper.classList.add('tree-node-content');
@@ -322,21 +239,33 @@
 
                     if (tierType === 'Learning Object') {
                         const asset = findAssetById(node['Tier Code']);
-                        contentInner.innerHTML = createAssetNodeContent(asset, parentCode);
+                        contentInner.innerHTML = createAssetNodeContent(asset);
                     } else {
-                        // Structural Node (Module, Topic, etc.)
-                        nodeElement.dataset.tierTitle = node['Tier Title']; // For CSV export
-                        nodeElement.dataset.description = node.Description || ''; // For CSV export
+                        // V15 CHANGE: Major refactoring of structural node display
+                        nodeElement.dataset.tierTitle = node['Tier Title'];
+                        nodeElement.dataset.description = node.Description || '';
 
                         const icon = document.createElement('span');
                         icon.classList.add('material-icons', 'node-icon');
                         icon.textContent = getNodeIcon(tierType);
+
+                        // New container for title and codes on one line
+                        const titleLine = document.createElement('div');
+                        titleLine.classList.add('node-title-line');
+
                         const titleSpan = document.createElement('span');
                         titleSpan.classList.add('node-title');
                         titleSpan.textContent = node['Tier Title'];
-                        titleWrapper.appendChild(titleSpan);
+                        
+                        // New container for codes, styled via CSS
+                        const codesSpan = document.createElement('div');
+                        codesSpan.classList.add('node-title-codes');
+                        codesSpan.innerHTML = `<span>Parent ID: ${parentCode || 'null'}</span> <span>ID: ${node['Tier Code']}</span>`;
 
-                        // Display description if it exists
+                        titleLine.appendChild(titleSpan);
+                        titleLine.appendChild(codesSpan);
+                        titleWrapper.appendChild(titleLine);
+
                         if (node.Description) {
                             const descriptionP = document.createElement('p');
                             descriptionP.classList.add('node-description');
@@ -344,7 +273,6 @@
                             titleWrapper.appendChild(descriptionP);
                         }
                         
-                        // Add action button to add child nodes
                         const addBtn = document.createElement('span');
                         addBtn.classList.add('material-icons', 'node-action-btn', 'add-node-btn');
                         addBtn.textContent = 'add_circle_outline';
@@ -354,12 +282,6 @@
                         contentInner.appendChild(icon);
                         contentInner.appendChild(titleWrapper);
                     }
-
-                    // Add Tier Code display to all nodes
-                    const tierCodeDisplay = document.createElement('div');
-                    tierCodeDisplay.classList.add('node-tier-codes');
-                    tierCodeDisplay.innerHTML = `<strong>ID:</strong> ${node['Tier Code']}<br><strong>Parent ID:</strong> ${parentCode || 'null'}`;
-                    titleWrapper.appendChild(tierCodeDisplay);
                     
                     contentWrapper.appendChild(contentInner);
                     
@@ -383,32 +305,24 @@
                 });
             }
 
-            function getNodeIcon(tierType) {
-                switch(tierType) { case 'Course': return 'school'; case 'Module': return 'view_module'; case 'Topic': return 'folder_open'; case 'Lesson': return 'class'; case 'Sub_Section': return 'segment'; case 'Learning Object': return 'article'; default: return 'lens_blur'; }
-            }
-            
-            function renderAssetCollection(assets) { /* ... unchanged ... */ }
+            function getNodeIcon(tierType) { /* ... unchanged ... */ }
             function populateFilters() { /* ... unchanged ... */ }
             function handleFiltering() { /* ... unchanged ... */ }
             function findAssetById(assetId) { return allAssets.find(a => a.assetId === assetId); }
 
             function initDragAndDrop() {
                 new Sortable(document.getElementById('asset-list'), { 
-                    group: { name: 'shared', pull: 'clone', put: false }, 
-                    sort: false,
-                    animation: 150
+                    group: { name: 'shared', pull: 'clone', put: false }, sort: false, animation: 150
                 });
-
                 document.querySelectorAll('.tree-children').forEach(container => {
                     if (container.parentElement.querySelector('.drop-target')) {
                          new Sortable(container, { 
                             group: 'shared', handle: '.drag-handle', animation: 150,
                             onAdd: evt => { 
                                 const asset = findAssetById(evt.item.dataset.assetId); 
-                                if (!asset) return; 
-                                const parentNode = evt.to.closest('.tree-node');
-                                const parentCode = parentNode ? parentNode.dataset.tierCode : '';
-                                const newAssetNode = createAssetNode(asset, parentCode); 
+                                if (!asset) return;
+                                // V15 CHANGE: parentCode no longer needed for asset node creation
+                                const newAssetNode = createAssetNode(asset); 
                                 evt.item.replaceWith(newAssetNode); 
                             } 
                         });
@@ -416,131 +330,239 @@
                 });
             }
             
-            // V14 CHANGE: Function now accepts parentCode to display it
-            function createAssetNodeContent(asset, parentCode) {
+            // V15 CHANGE: Updated to use displayName and removed Tier Code info
+            function createAssetNodeContent(asset) {
                 return `
                     <span class="material-icons drag-handle">drag_indicator</span>
                     <span class="material-icons node-icon">article</span>
                     <div class="node-title-wrapper">
-                        <span class="node-title">${asset.curriculumTreeDisplayName}</span>
+                        <span class="node-title">${asset.displayName}</span>
                         <p class="node-description">${asset.description || ''}</p>
-                        <div class="node-tier-codes">
-                            <strong>ID:</strong> ${asset.assetId}<br>
-                            <strong>Parent ID:</strong> ${parentCode || 'null'}
-                        </div>
                     </div>
                     <span class="material-icons node-action-btn delete-asset-btn">close</span>
                 `;
             }
             
-            function createAssetNode(asset, parentCode) {
+            function createAssetNode(asset) {
                 const nodeElement = document.createElement('div');
                 nodeElement.classList.add('tree-node');
                 nodeElement.dataset.tierCode = asset.assetId;
                 nodeElement.dataset.tierType = 'Learning Object';
-                nodeElement.dataset.parentTierCode = parentCode;
-
+                
                 const contentWrapper = document.createElement('div');
                 contentWrapper.classList.add('tree-node-content');
                 const contentInner = document.createElement('div');
                 contentInner.classList.add('tree-node-content-inner');
-                contentInner.innerHTML = createAssetNodeContent(asset, parentCode);
+                contentInner.innerHTML = createAssetNodeContent(asset);
                 
                 contentWrapper.appendChild(contentInner);
                 nodeElement.appendChild(contentWrapper);
                 return nodeElement;
             }
 
-            // V14 CHANGE: New function to handle saving the new node from the modal
-            function handleSaveNewNode() {
-                const form = document.getElementById('add-node-form');
-                if (!form.checkValidity()) {
-                    form.reportValidity();
-                    return;
-                }
-
-                const parentCode = document.getElementById('parentNodeCode').value;
-                const parentNode = document.querySelector(`.tree-node[data-tier-code="${parentCode}"]`);
-                if (!parentNode) {
-                    alert('Error: Parent node not found!');
-                    return;
-                }
-
-                const newNodeData = {
-                    title: document.getElementById('nodeTitle').value,
-                    type: document.getElementById('nodeType').value,
-                    description: document.getElementById('nodeDescription').value,
-                    tierCode: `newNode-${Date.now()}`, // Simple unique ID for prototype
-                    parentTierCode: parentCode
-                };
-
-                const nodeElement = document.createElement('div');
-                nodeElement.classList.add('tree-node');
-                nodeElement.dataset.tierCode = newNodeData.tierCode;
-                nodeElement.dataset.tierType = newNodeData.type;
-                nodeElement.dataset.parentTierCode = newNodeData.parentTierCode;
-                nodeElement.dataset.tierTitle = newNodeData.title;
-                nodeElement.dataset.description = newNodeData.description;
-                
-                // Build the inner content
-                const contentWrapper = document.createElement('div');
-                contentWrapper.classList.add('tree-node-content', 'drop-target');
-                const contentInner = document.createElement('div');
-                contentInner.classList.add('tree-node-content-inner');
-                contentInner.innerHTML = `
-                    <span class="material-icons tree-toggle">arrow_drop_down</span>
-                    <span class="material-icons node-icon">${getNodeIcon(newNodeData.type)}</span>
-                    <div class="node-title-wrapper">
-                        <span class="node-title">${newNodeData.title}</span>
-                        ${newNodeData.description ? `<p class="node-description">${newNodeData.description}</p>` : ''}
-                        <div class="node-tier-codes">
-                            <strong>ID:</strong> ${newNodeData.tierCode}<br>
-                            <strong>Parent ID:</strong> ${newNodeData.parentTierCode}
-                        </div>
-                    </div>`;
-                
-                const addBtn = document.createElement('span');
-                addBtn.classList.add('material-icons', 'node-action-btn', 'add-node-btn');
-                addBtn.textContent = 'add_circle_outline';
-                addBtn.title = 'Add child node';
-                contentWrapper.appendChild(addBtn);
-
-                contentWrapper.appendChild(contentInner);
-                nodeElement.appendChild(contentWrapper);
-
-                let childrenContainer = parentNode.querySelector('.tree-children');
-                if (!childrenContainer) {
-                    childrenContainer = document.createElement('div');
-                    childrenContainer.classList.add('tree-children');
-                    parentNode.appendChild(childrenContainer);
-                    // If parent didn't have children before, it might not have a toggle
-                    if (!parentNode.querySelector('.tree-toggle')) {
-                        const toggle = document.createElement('span');
-                        toggle.classList.add('material-icons', 'tree-toggle');
-                        toggle.textContent = 'arrow_drop_down';
-                        parentNode.querySelector('.tree-node-content-inner').prepend(toggle);
-                    }
-                }
-                
-                // Add an empty, sortable children container to the new node
-                const newChildrenContainer = document.createElement('div');
-                newChildrenContainer.classList.add('tree-children');
-                nodeElement.appendChild(newChildrenContainer);
-                new Sortable(newChildrenContainer, { group: 'shared', handle: '.drag-handle', animation: 150 });
-
-
-                childrenContainer.appendChild(nodeElement);
-                parentNode.querySelector('.tree-children').classList.remove('collapsed');
-                parentNode.querySelector('.tree-toggle').classList.remove('collapsed');
-
-                addNodeModal.hide();
-                form.reset();
-            }
-
+            function handleSaveNewNode() { /* ... unchanged ... */ }
             function applyLessonTemplate() { /* ... unchanged ... */ }
             function exportTreeToCSV() { /* ... unchanged ... */ }
 
             (async () => {
+                // The unchanged functions are now defined here for context
+                parseCSV = function(text) {
+                    const lines = text.trim().split('\n');
+                    const headerLine = lines.shift().trim();
+                    const headers = headerLine.split(',').map(h => h.replace(/^"|"$/g, ''));
+
+                    return lines.map(line => {
+                        const obj = {};
+                        let values = [];
+                        let inQuotes = false;
+                        let value = '';
+
+                        for (let i = 0; i < line.length; i++) {
+                            const char = line[i];
+                            if (char === '"') { if (inQuotes && line[i+1] === '"') { value += '"'; i++; } else { inQuotes = !inQuotes; } } 
+                            else if (char === ',' && !inQuotes) { values.push(value); value = ''; } 
+                            else { value += char; }
+                        }
+                        values.push(value);
+                        headers.forEach((header, i) => { obj[header] = (values[i] || '').trim(); });
+                        return obj;
+                    });
+                };
+                
+                loadData = async function() {
+                    try {
+                        const [assetResponse, treeResponse] = await Promise.all([ fetch('data/Algebra I Asset Collection.csv'), fetch('data/High School Math Solution Algebra I Course Tree.csv') ]);
+                        const assetText = await assetResponse.text();
+                        const treeText = await treeResponse.text();
+                        let parsedAssets = parseCSV(assetText);
+                        parsedAssets = parsedAssets.filter(asset => asset && asset.assetId && asset.displayName);
+                        allAssets = parsedAssets.filter(asset => !(asset.locales && asset.locales.includes('es')));
+                        allAssets.forEach(asset => {
+                            try { asset.parsedAudiences = JSON.parse(asset.audiences.replace(/^"|"$/g, '').replace(/""/g, '"')); } catch (e) { asset.parsedAudiences = []; }
+                        });
+                        let courseTreeFlat = parseCSV(treeText);
+                        courseTreeFlat = courseTreeFlat.filter(row => row && row['Tier Code']);
+                        initialCourseTreeData = buildTree(courseTreeFlat);
+                    } catch (error) {
+                        console.error("Error loading or parsing CSV data:", error);
+                        document.getElementById('course-tree').innerHTML = `<div class="alert alert-danger">Failed to load data. See console for details.</div>`;
+                    }
+                };
+
+                buildTree = function(flatData) {
+                    const nodesById = {};
+                    flatData.forEach(node => { nodesById[node['Tier Code']] = { ...node, children: [] }; });
+                    const roots = [];
+                    flatData.forEach(node => {
+                        const parentCode = node['Parent Tier Code'];
+                        if (parentCode && nodesById[parentCode]) {
+                            nodesById[parentCode].children.push(nodesById[node['Tier Code']]);
+                        } else { roots.push(nodesById[node['Tier Code']]); }
+                    });
+                    return roots;
+                };
+
+                getNodeIcon = function(tierType) {
+                    switch(tierType) { case 'Course': return 'school'; case 'Module': return 'view_module'; case 'Topic': return 'folder_open'; case 'Lesson': return 'class'; case 'Sub_Section': return 'segment'; case 'Learning Object': return 'article'; default: return 'lens_blur'; }
+                };
+
+                populateFilters = function() {
+                    const types = [...new Set(allAssets.map(a => a.assetActivityTypeId).filter(Boolean))].sort();
+                    const typeFilter = document.getElementById('type-filter');
+                    typeFilter.innerHTML = '<option value="">All Asset Types</option>'; // Clear existing
+                    types.forEach(type => {
+                        const option = document.createElement('option');
+                        option.value = type;
+                        option.textContent = type;
+                        typeFilter.appendChild(option);
+                    });
+                };
+
+                handleFiltering = function() {
+                    const searchTerm = document.getElementById('search-box').value.toLowerCase();
+                    const selectedType = document.getElementById('type-filter').value;
+                    const selectedAudience = document.getElementById('audience-filter').value;
+                    const filteredAssets = allAssets.filter(asset => {
+                        const nameMatch = asset.displayName.toLowerCase().includes(searchTerm);
+                        const typeMatch = !selectedType || asset.assetActivityTypeId === selectedType;
+                        let audienceMatch = true;
+                        if (selectedAudience) {
+                            const audiences = asset.parsedAudiences || [];
+                            if (selectedAudience === 'STU_ONLY') { audienceMatch = audiences.length === 1 && audiences[0] === 'STU'; } 
+                            else if (selectedAudience === 'TCH_ONLY') { audienceMatch = audiences.length === 1 && audiences[0] === 'TCH'; } 
+                            else if (selectedAudience === 'STU_TCH') { audienceMatch = audiences.length === 2 && audiences.includes('STU') && audiences.includes('TCH'); }
+                        }
+                        return nameMatch && typeMatch && audienceMatch;
+                    });
+                    renderAssetCollection(filteredAssets);
+                };
+
+                handleSaveNewNode = function() {
+                    const form = document.getElementById('add-node-form');
+                    if (!form.checkValidity()) { form.reportValidity(); return; }
+                    const parentCode = document.getElementById('parentNodeCode').value;
+                    const parentNode = document.querySelector(`.tree-node[data-tier-code="${parentCode}"]`);
+                    if (!parentNode) { alert('Error: Parent node not found!'); return; }
+                    const newNodeData = { title: document.getElementById('nodeTitle').value, type: document.getElementById('nodeType').value, description: document.getElementById('nodeDescription').value, tierCode: `newNode-${Date.now()}`, parentTierCode: parentCode };
+                    const nodeElement = document.createElement('div');
+                    nodeElement.classList.add('tree-node');
+                    Object.assign(nodeElement.dataset, { tierCode: newNodeData.tierCode, tierType: newNodeData.type, parentTierCode: newNodeData.parentTierCode, tierTitle: newNodeData.title, description: newNodeData.description });
+                    const contentWrapper = document.createElement('div');
+                    contentWrapper.classList.add('tree-node-content', 'drop-target');
+                    const contentInner = document.createElement('div');
+                    contentInner.classList.add('tree-node-content-inner');
+                    contentInner.innerHTML = `<span class="material-icons tree-toggle">arrow_drop_down</span><span class="material-icons node-icon">${getNodeIcon(newNodeData.type)}</span><div class="node-title-wrapper"><div class="node-title-line"><span class="node-title">${newNodeData.title}</span><div class="node-title-codes"><span>Parent ID: ${newNodeData.parentTierCode}</span> <span>ID: ${newNodeData.tierCode}</span></div></div>${newNodeData.description ? `<p class="node-description">${newNodeData.description}</p>` : ''}</div>`;
+                    const addBtn = document.createElement('span');
+                    addBtn.classList.add('material-icons', 'node-action-btn', 'add-node-btn');
+                    addBtn.textContent = 'add_circle_outline';
+                    addBtn.title = 'Add child node';
+                    contentWrapper.appendChild(addBtn);
+                    contentWrapper.appendChild(contentInner);
+                    nodeElement.appendChild(contentWrapper);
+                    let childrenContainer = parentNode.querySelector('.tree-children');
+                    if (!childrenContainer) {
+                        childrenContainer = document.createElement('div');
+                        childrenContainer.classList.add('tree-children');
+                        parentNode.appendChild(childrenContainer);
+                        if (!parentNode.querySelector('.tree-toggle')) {
+                            const toggle = document.createElement('span');
+                            toggle.classList.add('material-icons', 'tree-toggle');
+                            toggle.textContent = 'arrow_drop_down';
+                            parentNode.querySelector('.tree-node-content-inner').prepend(toggle);
+                        }
+                    }
+                    const newChildrenContainer = document.createElement('div');
+                    newChildrenContainer.classList.add('tree-children');
+                    nodeElement.appendChild(newChildrenContainer);
+                    new Sortable(newChildrenContainer, { group: 'shared', handle: '.drag-handle', animation: 150 });
+                    childrenContainer.appendChild(nodeElement);
+                    parentNode.querySelector('.tree-children').classList.remove('collapsed');
+                    parentNode.querySelector('.tree-toggle').classList.remove('collapsed');
+                    addNodeModal.hide();
+                    form.reset();
+                };
+
+                applyLessonTemplate = function() {
+                    let assetsAdded = 0; document.querySelectorAll('.tree-node[data-tier-type="Lesson"]').forEach(lessonNode => {
+                        const lessonTitle = lessonNode.querySelector('.node-title').textContent.trim();
+                        const potentialAssets = allAssets.filter(asset => asset.displayName.startsWith(lessonTitle));
+                        let childrenContainer = lessonNode.querySelector('.tree-children');
+                        if (!childrenContainer) { 
+                            childrenContainer = document.createElement('div'); childrenContainer.classList.add('tree-children'); lessonNode.appendChild(childrenContainer);
+                            new Sortable(childrenContainer, { group: 'shared', handle: '.drag-handle', animation: 150 });
+                        }
+                        ['DIGITAL-LESSON', 'DIGITAL-SKILLS-PRACTICE'].forEach(assetType => {
+                            const assetToPlace = potentialAssets.find(a => a.assetActivityTypeId === assetType);
+                            if (assetToPlace && !childrenContainer.querySelector(`[data-tier-code="${assetToPlace.assetId}"]`)) { 
+                                childrenContainer.appendChild(createAssetNode(assetToPlace)); assetsAdded++; 
+                            }
+                        });
+                    });
+                    alert(`${assetsAdded} assets were auto-populated based on the lesson template rules.`);
+                };
+
+                exportTreeToCSV = function() {
+                    const headers = ['"Tier Code"', '"Parent Tier Code"', '"Tier Type Title"', '"Tier Title"', '"Description"']; // Added Description
+                    let csvRows = [headers.join(',')];
+                    function traverse(nodeElement) {
+                        const tierCode = nodeElement.dataset.tierCode;
+                        const parentTierCode = nodeElement.dataset.parentTierCode;
+                        const tierType = nodeElement.dataset.tierType;
+                        const tierTitle = tierType === 'Learning Object' ? nodeElement.querySelector('.node-title').textContent.trim() : nodeElement.dataset.tierTitle;
+                        const description = tierType === 'Learning Object' ? (nodeElement.querySelector('.node-description')?.textContent.trim() || '') : nodeElement.dataset.description;
+                        
+                        const sanitizedTitle = tierTitle.replace(/"/g, '""');
+                        const sanitizedDesc = description.replace(/"/g, '""');
+
+                        csvRows.push([`"${tierCode}"`, `"${parentTierCode || ''}"`, `"${tierType}"`, `"${sanitizedTitle}"`, `"${sanitizedDesc}"`].join(','));
+                        
+                        const childrenContainer = nodeElement.querySelector('.tree-children');
+                        if (childrenContainer) {
+                            childrenContainer.childNodes.forEach(childNode => {
+                                if (childNode.classList && childNode.classList.contains('tree-node')) {
+                                    traverse(childNode);
+                                }
+                            });
+                        }
+                    }
+                    document.getElementById('course-tree').childNodes.forEach(rootNode => {
+                        if (rootNode.classList && rootNode.classList.contains('tree-node')) {
+                            traverse(rootNode);
+                        }
+                    });
+                    const csvContent = csvRows.join('\n');
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", "updated_course_tree.csv");
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                };
+                
+                // Main execution starts here
                 await loadData();
                 renderAssetCollection(allAssets);
                 populateFilters();
@@ -550,9 +572,7 @@
                 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
                 tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
                 
-                // V14 CHANGE: Add listener for the modal save button
                 document.getElementById('save-new-node-btn').addEventListener('click', handleSaveNewNode);
-
                 document.getElementById('search-box').addEventListener('input', handleFiltering);
                 document.getElementById('type-filter').addEventListener('change', handleFiltering);
                 document.getElementById('audience-filter').addEventListener('change', handleFiltering);
@@ -561,22 +581,11 @@
                 document.getElementById('apply-template').addEventListener('click', applyLessonTemplate);
                 document.getElementById('save-tree').addEventListener('click', exportTreeToCSV);
 
-                // V14 CHANGE: Updated event listener to handle add-node-btn
                 document.getElementById('course-tree').addEventListener('click', e => {
                     const toggle = e.target.closest('.tree-toggle');
-                    if (toggle) {
-                        toggle.classList.toggle('collapsed');
-                        const childrenContainer = toggle.closest('.tree-node').querySelector('.tree-children');
-                        if (childrenContainer) childrenContainer.classList.toggle('collapsed');
-                        return;
-                    }
-
+                    if (toggle) { toggle.classList.toggle('collapsed'); toggle.closest('.tree-node').querySelector('.tree-children')?.classList.toggle('collapsed'); return; }
                     const deleteBtn = e.target.closest('.delete-asset-btn');
-                    if (deleteBtn) {
-                        deleteBtn.closest('.tree-node')?.remove();
-                        return;
-                    }
-
+                    if (deleteBtn) { deleteBtn.closest('.tree-node')?.remove(); return; }
                     const addBtn = e.target.closest('.add-node-btn');
                     if (addBtn) {
                         const parentNode = addBtn.closest('.tree-node');
